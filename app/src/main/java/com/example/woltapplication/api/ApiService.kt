@@ -22,8 +22,8 @@ class ApiService {
         }
     }
 
-    suspend fun getData(): RestaurantData? {
-        val url = "https://restaurant-api.wolt.com/v1/pages/restaurants?lat=60.170187&lon=24.930599"
+    suspend fun getData(latitude: Double, longitude: Double): RestaurantData? {
+        val url = "https://restaurant-api.wolt.com/v1/pages/restaurants?lat=$latitude&lon=$longitude"
         try {
             val response = client.get(url)
             Log.d("apple", "HTTP Status: ${response.status}")
