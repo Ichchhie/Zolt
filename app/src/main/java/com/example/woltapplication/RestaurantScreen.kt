@@ -153,3 +153,10 @@ fun ErrorState(modifier: Modifier = Modifier, message: String) {
         }
     }
 }
+
+@Composable
+fun LoadingIndicator(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
