@@ -72,11 +72,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
-    implementation (libs.ktor.client.android)
-//    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
-
-    implementation(libs.gson)
+    implementation(libs.androidx.datastore.preferences)
+    // ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 }

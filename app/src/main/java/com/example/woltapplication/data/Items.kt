@@ -1,4 +1,4 @@
-package com.example.woltapplication.api
+package com.example.woltapplication.data
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName

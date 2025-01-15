@@ -1,6 +1,7 @@
 package com.example.woltapplication.api
 
 import android.util.Log
+import com.example.woltapplication.data.RestaurantData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -22,16 +23,20 @@ class ApiService {
         }
     }
 
-    suspend fun getData(latitude: Double, longitude: Double): RestaurantData? {
+    sealed class APIResult<out T> {
+        data class Success<T>(val data: T) : APIResult<T>()
+        data class Error(val message: String) : APIResult<Nothing>()
+    }
+
+    suspend fun getData(latitude: Double, longitude: Double): APIResult<RestaurantData> {
         val url = "https://restaurant-api.wolt.com/v1/pages/restaurants?lat=$latitude&lon=$longitude"
-        try {
+        return try {
             val response = client.get(url)
             Log.d("apple", "HTTP Status: ${response.status}")
-//            Log.d("apple", "Response Body: ${response.bodyAsText()}")
-            return response.body() // Deserialize to ApiResponse
+            APIResult.Success(response.body())
         } catch (e: Exception) {
             Log.d("apple", "Error during API call: ${e.message}")
-            return null
+            APIResult.Error("Error during API call: ${e.message}")
         }
     }
 }
