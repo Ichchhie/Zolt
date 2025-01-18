@@ -7,12 +7,17 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.woltapplication.persistence.MainViewModel
+import com.example.woltapplication.room.AppDatabase
+import com.example.woltapplication.screens.RestaurantScreen
 import com.example.woltapplication.ui.theme.WoltApplicationTheme
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Initialize the database
+        val noteDatabase = AppDatabase.getDatabase(this)
         val statusBarColor = ContextCompat.getColor(applicationContext, R.color.purple_700)
         val navigationBarColor = ContextCompat.getColor(applicationContext, R.color.black)
         enableEdgeToEdge(

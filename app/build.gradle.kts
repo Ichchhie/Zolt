@@ -5,8 +5,7 @@ plugins {
 
     // ++ add below id under plugin
     kotlin("plugin.serialization") version "2.1.0"
-//    id("kotlinx-serialization")
-}
+    id("com.google.devtools.ksp")}
 
 android {
     namespace = "com.example.woltapplication"
@@ -70,13 +69,21 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    //coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    //ktor
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+    //data store
     implementation(libs.androidx.datastore.preferences)
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    //room
+    implementation(libs.androidx.room.runtime)
+    //ksp is 2X times faster than kapt
+    ksp(libs.androidx.room.compiler.v250)
+    implementation(libs.androidx.room.ktx)
 }

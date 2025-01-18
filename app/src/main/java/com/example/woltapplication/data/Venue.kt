@@ -1,10 +1,14 @@
 package com.example.woltapplication.data
 
+import androidx.annotation.NonNull
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 
 @Serializable
+@Entity(tableName = "venues")
 data class Venue(
 
 //  @SerialName("address"                  ) var address                : String?                      = null,
@@ -22,7 +26,8 @@ data class Venue(
 //  @SerialName("estimate_box"             ) var estimateBox            : EstimateBox?                 = EstimateBox(),
 //  @SerialName("estimate_range"           ) var estimateRange          : String?                      = null,
 //  @SerialName("franchise"                ) var franchise              : String?                      = null,
-    @SerialName("id") var id: String? = null,
+    @PrimaryKey
+    @SerialName("id") var id: String = "",
 //  @SerialName("location"                 ) var location               : ArrayList<Double>            = arrayListOf(),
     @SerialName("name") var name: String? = null,
 //  @SerialName("online"                   ) var online                 : Boolean?                     = null,
@@ -31,6 +36,8 @@ data class Venue(
 //  @SerialName("promotions"               ) var promotions             : ArrayList<String>            = arrayListOf(),
 //  @SerialName("rating"                   ) var rating                 : Rating?                      = Rating(),
     @SerialName("short_description") var shortDescription: String? = null,
+    var isFavourite: Boolean = false,
+//    var image: Image? = Image(),
 //  @SerialName("show_wolt_plus"           ) var showWoltPlus           : Boolean?                     = null,
 //  @SerialName("slug"                     ) var slug                   : String?                      = null,
 //  @SerialName("tags"                     ) var tags                   : ArrayList<String>            = arrayListOf(),

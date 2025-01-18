@@ -1,29 +1,17 @@
-package com.example.woltapplication
+package com.example.woltapplication.persistence
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.woltapplication.api.ApiService
 import com.example.woltapplication.data.RestaurantData
+import com.example.woltapplication.room.VenueDao
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class MainViewModel() : ViewModel() {
     private val apiService = ApiService()
-
-    sealed class UiState {
-        data object Loading : UiState() // Used only for the initial loading
-        data class Success(val data: RestaurantData) : UiState()
-        data class LoadingWithData(val data: RestaurantData) :
-            UiState() // Loading while displaying old data
-
-        data class Error(val message: String) : UiState()
-    }
-
-    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
-    val uiState: StateFlow<UiState> = _uiState
-
     // Location coordinates for mocking the location change
     private val locationCoordinates = listOf(
         Pair(60.169418, 24.931618),
@@ -37,6 +25,17 @@ class MainViewModel : ViewModel() {
         Pair(60.170085, 24.929569)
     )
     private var currentIndex = 0
+
+    sealed class UiState {
+        data object Loading : UiState() // Used only for the initial loading
+        data class Success(val data: RestaurantData) : UiState()
+        data class LoadingWithData(val data: RestaurantData) :
+            UiState() // Loading while displaying old data
+        data class Error(val message: String) : UiState()
+    }
+
+    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
+    val uiState: StateFlow<UiState> = _uiState
 
     init {
         // Start fetching data on ViewModel initialization

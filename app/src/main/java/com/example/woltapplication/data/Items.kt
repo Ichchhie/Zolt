@@ -1,5 +1,6 @@
 package com.example.woltapplication.data
 
+import androidx.room.Entity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
