@@ -90,7 +90,10 @@ fun RestaurantList(data: RestaurantData) {
         }
         items(itemsToDisplay) { index ->
             val showDivider = (index != lastIndex)
-            VenueCardView(items[index].venue, items[index].image?.url, showDivider)
+            if (items[index].venue != null) {
+
+                VenueCardView(items[index].venue, items[index].image?.url, showDivider)
+            }
         }
     }
 }
@@ -152,7 +155,10 @@ fun VenueCardView(restaurantVenue: Venue?, imageUrl: String?, showDivider: Boole
                             )
                         } else {
                             restaurantVenue.isFavourite = false;
-                            Icon(Icons.Outlined.FavoriteBorder, contentDescription = "add to favourites icon")
+                            Icon(
+                                Icons.Outlined.FavoriteBorder,
+                                contentDescription = "add to favourites icon"
+                            )
                         }
                     }
                 }

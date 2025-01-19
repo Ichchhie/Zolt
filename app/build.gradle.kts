@@ -5,7 +5,9 @@ plugins {
 
     // ++ add below id under plugin
     kotlin("plugin.serialization") version "2.1.0"
-    id("com.google.devtools.ksp")}
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
+}
 
 android {
     namespace = "com.example.woltapplication"
@@ -85,5 +87,10 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     //ksp is 2X times faster than kapt
     ksp(libs.androidx.room.compiler.v250)
+    //hilt
+    implementation(libs.hilt.android)
+    ksp (libs.hilt.android.compiler)
+    kspAndroidTest (libs.hilt.android.compiler)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.hilt.navigation.compose)
 }

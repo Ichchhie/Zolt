@@ -4,13 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.woltapplication.api.ApiService
 import com.example.woltapplication.data.RestaurantData
+import com.example.woltapplication.data.Venue
 import com.example.woltapplication.room.VenueDao
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel() : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(private val venueRepository: VenueRepository) : ViewModel() {
     private val apiService = ApiService()
     // Location coordinates for mocking the location change
     private val locationCoordinates = listOf(
@@ -83,5 +87,20 @@ class MainViewModel() : ViewModel() {
                 }
             }
         }
+    }
+
+    fun getFavouriteVenues(): List<Venue> {
+        return venueRepository.getAllFavouriteVenues()
+    }
+
+    fun getFavouriteVenuesIDs(): List<String> {
+        return venueRepository.getFavouriteVenuesIds()
+    }
+
+    fun insertVenue(venue: Venue) {
+        venueRepository.insertVenue(venue)
+    }
+    fun deletedVenue(venue: Venue) {
+        venueRepository.deleteVenue(venue)
     }
 }
