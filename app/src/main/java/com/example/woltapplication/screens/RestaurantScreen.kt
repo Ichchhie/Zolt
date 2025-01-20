@@ -18,11 +18,11 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,15 +37,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
-import com.example.woltapplication.persistence.MainViewModel
 import com.example.woltapplication.R
 import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
+import com.example.woltapplication.persistence.MainViewModel
 
 @Composable
-fun RestaurantScreen(viewModel: MainViewModel) {
-    val uiState by viewModel.uiState.collectAsState()
+fun RestaurantScreen() {
+    val mainViewModel: MainViewModel = hiltViewModel()
+    val uiState by mainViewModel.uiState.collectAsState()
 
     when (uiState) {
         is MainViewModel.UiState.Loading -> {
@@ -54,14 +56,14 @@ fun RestaurantScreen(viewModel: MainViewModel) {
 
         is MainViewModel.UiState.Success -> {
             val data = (uiState as MainViewModel.UiState.Success).data
-            RestaurantList(data)
+            RestaurantList(data, mainViewModel)
         }
 
         is MainViewModel.UiState.LoadingWithData -> {
             val data = (uiState as MainViewModel.UiState.LoadingWithData).data
             // Show data with a "Loading" indicator
             Box {
-                RestaurantList(data)
+                RestaurantList(data, mainViewModel)
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
@@ -71,10 +73,14 @@ fun RestaurantScreen(viewModel: MainViewModel) {
             ErrorState(message = "Please check your internet and try again!")
         }
     }
+
+    LaunchedEffect(Unit) {
+        mainViewModel.getFavouriteVenuesIDs()
+    }
 }
 
 @Composable
-fun RestaurantList(data: RestaurantData) {
+fun RestaurantList(data: RestaurantData, mainViewModel: MainViewModel) {
     val items = data.sections[1].items;
     var itemsToDisplay = items.size;
     if (itemsToDisplay > 15)
@@ -92,38 +98,52 @@ fun RestaurantList(data: RestaurantData) {
             val showDivider = (index != lastIndex)
             if (items[index].venue != null) {
 
-                VenueCardView(items[index].venue, items[index].image?.url, showDivider)
+                VenueCardView(
+                    items[index].venue,
+                    items[index].image?.url,
+                    showDivider,
+                    mainViewModel
+                )
             }
         }
     }
 }
 
 @Composable
-fun VenueCardView(restaurantVenue: Venue?, imageUrl: String?, showDivider: Boolean) {
+fun VenueCardView(
+    restaurantVenue: Venue?,
+    imageUrl: String?,
+    showDivider: Boolean,
+    mainViewModel: MainViewModel
+) {
     val imageDimension = 96.dp
     val horizontalSpacing = 16.dp
-    Column {
-        Row(
-            modifier = Modifier.padding(horizontalSpacing),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(modifier = Modifier.weight(0.3f)) {
-                AsyncImage(
-                    model = imageUrl,
-                    contentScale = ContentScale.Crop,
-                    contentDescription = "Translated description of what the image contains",
-                    modifier = Modifier
-                        .height(imageDimension)
-                        .width(imageDimension)
-                        .clip(RoundedCornerShape(size = 16.dp)),
-                    placeholder = painterResource(id = R.drawable.ic_favorite_border_icon),
-                    error = painterResource(id = R.drawable.ic_favorite_border_icon),
-                    fallback = painterResource(id = R.drawable.ic_favorite_border_icon),
-                )
-            }
-            AddHorizontalSpace(horizontalSpacing)
-            Column(modifier = Modifier.weight(0.7f)) {
-                if (restaurantVenue != null) {
+
+    val favouriteVenuesIds by mainViewModel.favouriteVenuesIds.collectAsState()
+    if (restaurantVenue != null) {
+        if (favouriteVenuesIds.contains(restaurantVenue.id))
+            restaurantVenue.isFavourite = true;
+        Column {
+            Row(
+                modifier = Modifier.padding(horizontalSpacing),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(0.3f)) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentScale = ContentScale.Crop,
+                        contentDescription = "Translated description of what the image contains",
+                        modifier = Modifier
+                            .height(imageDimension)
+                            .width(imageDimension)
+                            .clip(RoundedCornerShape(size = 16.dp)),
+                        placeholder = painterResource(id = R.drawable.ic_favorite_border_icon),
+                        error = painterResource(id = R.drawable.ic_favorite_border_icon),
+                        fallback = painterResource(id = R.drawable.ic_favorite_border_icon),
+                    )
+                }
+                AddHorizontalSpace(horizontalSpacing)
+                Column(modifier = Modifier.weight(0.7f)) {
                     restaurantVenue.name?.let {
                         Text(text = it, style = MaterialTheme.typography.titleMedium)
                     }
@@ -137,24 +157,27 @@ fun VenueCardView(restaurantVenue: Venue?, imageUrl: String?, showDivider: Boole
                         )
                     }
                 }
-            }
-            AddHorizontalSpace(12.dp)
-            Box(modifier = Modifier.weight(0.1f), Alignment.Center) {
-                if (restaurantVenue != null) {
+                AddHorizontalSpace(12.dp)
+                Box(modifier = Modifier.weight(0.1f), Alignment.Center) {
                     var checked by remember { mutableStateOf(restaurantVenue.isFavourite) }
                     IconToggleButton(
                         modifier = Modifier
                             .width(45.dp)
                             .height(45.dp),
                         checked = checked,
-                        onCheckedChange = { checked = it }) {
+                        onCheckedChange = {
+                            checked = it
+                        }) {
                         if (checked) {
                             restaurantVenue.isFavourite = true;
+                            mainViewModel.insertVenue(restaurantVenue)
                             Icon(
-                                Icons.Filled.Favorite, contentDescription = "add to favourites icon"
+                                Icons.Filled.Favorite,
+                                contentDescription = "add to favourites icon"
                             )
                         } else {
                             restaurantVenue.isFavourite = false;
+                            mainViewModel.deletedVenue(restaurantVenue)
                             Icon(
                                 Icons.Outlined.FavoriteBorder,
                                 contentDescription = "add to favourites icon"
@@ -163,11 +186,11 @@ fun VenueCardView(restaurantVenue: Venue?, imageUrl: String?, showDivider: Boole
                     }
                 }
             }
-        }
-        if (showDivider) {
-            Row(modifier = Modifier.padding(horizontal = horizontalSpacing)) {
-                AddHorizontalSpace(imageDimension + horizontalSpacing)
-                HorizontalDivider(color = Color.LightGray, thickness = 1.5.dp)
+            if (showDivider) {
+                Row(modifier = Modifier.padding(horizontal = horizontalSpacing)) {
+                    AddHorizontalSpace(imageDimension + horizontalSpacing)
+                    HorizontalDivider(color = Color.LightGray, thickness = 1.5.dp)
+                }
             }
         }
     }

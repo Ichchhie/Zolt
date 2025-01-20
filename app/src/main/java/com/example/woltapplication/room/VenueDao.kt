@@ -10,14 +10,14 @@ import com.example.woltapplication.data.Venue
 @Dao
 interface VenueDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertFavouriteVenue(venue: Venue)
+    suspend fun insertFavouriteVenue(venue: Venue)
 
     @Delete()
-    fun deleteFavouriteVenue(venue: Venue)
+    suspend fun deleteFavouriteVenue(venue: Venue)
 
     @Query("SELECT * FROM venues WHERE isFavourite = 1")
-    fun getFavourites() : List<Venue>
+    suspend fun getFavourites() : List<Venue>
 
     @Query("SELECT id FROM venues WHERE isFavourite = 1")
-    fun getFavouritesId() : List<String>
+    suspend fun getFavouritesId() : List<String>
 }

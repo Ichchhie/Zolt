@@ -6,20 +6,15 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.woltapplication.persistence.MainViewModel
-import com.example.woltapplication.room.AppDatabase
 import com.example.woltapplication.screens.RestaurantScreen
 import com.example.woltapplication.ui.theme.WoltApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity: ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Initialize the database
-        val noteDatabase = AppDatabase.getDatabase(this)
         val statusBarColor = ContextCompat.getColor(applicationContext, R.color.purple_700)
         val navigationBarColor = ContextCompat.getColor(applicationContext, R.color.black)
         enableEdgeToEdge(
@@ -28,8 +23,7 @@ class MainActivity: ComponentActivity() {
         )
         setContent {
             WoltApplicationTheme {
-                val mainViewModel: MainViewModel = hiltViewModel()
-                RestaurantScreen(viewModel = mainViewModel)
+                RestaurantScreen()
             }
         }
     }
