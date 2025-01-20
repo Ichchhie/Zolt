@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,6 +54,9 @@ import com.example.woltapplication.persistence.MainViewModel
 fun RestaurantScreen() {
     val mainViewModel: MainViewModel = hiltViewModel()
     val uiState by mainViewModel.uiState.collectAsState()
+    // Remember the scroll state
+    val listState = rememberLazyListState()
+
     val appBarTitle = when (uiState) {
         is MainViewModel.UiState.Success -> "Restaurants nearby you"
         else -> "Finding Restaurants for you..." // Default title
@@ -71,14 +75,14 @@ fun RestaurantScreen() {
 
         is MainViewModel.UiState.Success -> {
             val data = (uiState as MainViewModel.UiState.Success).data
-            RestaurantList(data, mainViewModel, appBarTitle)
+            RestaurantList(data, mainViewModel, appBarTitle, listState)
         }
 
         is MainViewModel.UiState.LoadingWithData -> {
             val data = (uiState as MainViewModel.UiState.LoadingWithData).data
             // Show data with a "Loading" indicator
             Box {
-                RestaurantList(data, mainViewModel, appBarTitle)
+                RestaurantList(data, mainViewModel, appBarTitle, listState)
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
@@ -96,13 +100,17 @@ fun RestaurantScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RestaurantList(data: RestaurantData, mainViewModel: MainViewModel, appBarTitle: String) {
+fun RestaurantList(
+    data: RestaurantData,
+    mainViewModel: MainViewModel,
+    appBarTitle: String,
+    listState: LazyListState
+) {
     val items = data.sections[1].items;
     var itemsToDisplay = items.size;
     if (itemsToDisplay > 15)
         itemsToDisplay = 15;
     val lastIndex = itemsToDisplay - 1
-    val listState = rememberLazyListState()
 
     Scaffold(
         topBar = {
@@ -142,6 +150,11 @@ fun RestaurantList(data: RestaurantData, mainViewModel: MainViewModel, appBarTit
                         mainViewModel
                     )
                 }
+            }
+        }
+        LaunchedEffect(data) {
+            if (listState.firstVisibleItemIndex > 0) {
+                listState.scrollToItem(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
             }
         }
     }
