@@ -32,10 +32,8 @@ class ApiService {
         val url = "https://restaurant-api.wolt.com/v1/pages/restaurants?lat=$latitude&lon=$longitude"
         return try {
             val response = client.get(url)
-            Log.d("apple", "HTTP Status: ${response.status}")
             APIResult.Success(response.body())
         } catch (e: Exception) {
-            Log.d("apple", "Error during API call: ${e.message}")
             APIResult.Error("Error during API call: ${e.message}")
         }
     }

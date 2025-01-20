@@ -16,11 +16,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,26 +48,37 @@ import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
 import com.example.woltapplication.persistence.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantScreen() {
     val mainViewModel: MainViewModel = hiltViewModel()
     val uiState by mainViewModel.uiState.collectAsState()
+    val appBarTitle = when (uiState) {
+        is MainViewModel.UiState.Success -> "Restaurants nearby you"
+        else -> "Finding Restaurants for you..." // Default title
+    }
+
 
     when (uiState) {
         is MainViewModel.UiState.Loading -> {
-            Text("Loading...", style = MaterialTheme.typography.bodyMedium)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Loading...", style = MaterialTheme.typography.bodyMedium)
+            }
         }
 
         is MainViewModel.UiState.Success -> {
             val data = (uiState as MainViewModel.UiState.Success).data
-            RestaurantList(data, mainViewModel)
+            RestaurantList(data, mainViewModel, appBarTitle)
         }
 
         is MainViewModel.UiState.LoadingWithData -> {
             val data = (uiState as MainViewModel.UiState.LoadingWithData).data
             // Show data with a "Loading" indicator
             Box {
-                RestaurantList(data, mainViewModel)
+                RestaurantList(data, mainViewModel, appBarTitle)
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
@@ -79,8 +94,9 @@ fun RestaurantScreen() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RestaurantList(data: RestaurantData, mainViewModel: MainViewModel) {
+fun RestaurantList(data: RestaurantData, mainViewModel: MainViewModel, appBarTitle: String) {
     val items = data.sections[1].items;
     var itemsToDisplay = items.size;
     if (itemsToDisplay > 15)
@@ -88,22 +104,44 @@ fun RestaurantList(data: RestaurantData, mainViewModel: MainViewModel) {
     val lastIndex = itemsToDisplay - 1
     val listState = rememberLazyListState()
 
-
-    LazyColumn(state = listState) {
-        // Add a single item
-        item {
-            Text(text = "First item", style = MaterialTheme.typography.labelMedium)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        appBarTitle,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color.Blue
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { /* Handle navigation icon click */ }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_gps), // Menu icon
+                            contentDescription = "Menu Icon",
+                            tint = Color.Blue
+                        )
+                    }
+                }
+            )
         }
-        items(itemsToDisplay) { index ->
-            val showDivider = (index != lastIndex)
-            if (items[index].venue != null) {
+    ) { innerPadding ->
+        LazyColumn(
+            state = listState,
+            contentPadding = innerPadding, // Avoid content overlapping with the App Bar
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(itemsToDisplay) { index ->
+                val showDivider = (index != lastIndex)
+                if (items[index].venue != null) {
 
-                VenueCardView(
-                    items[index].venue,
-                    items[index].image?.url,
-                    showDivider,
-                    mainViewModel
-                )
+                    VenueCardView(
+                        items[index].venue,
+                        items[index].image?.url,
+                        showDivider,
+                        mainViewModel
+                    )
+                }
             }
         }
     }
