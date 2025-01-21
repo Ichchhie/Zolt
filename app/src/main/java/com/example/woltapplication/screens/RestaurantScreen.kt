@@ -1,11 +1,13 @@
 package com.example.woltapplication.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,6 +28,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -34,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +60,7 @@ import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
 import com.example.woltapplication.persistence.MainViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,81 +70,15 @@ fun RestaurantScreen() {
     // to remember the scroll state of the list for new data loading
     val listState = rememberLazyListState()
 
+    // Create SnackbarHostState for snackbar to show while location change
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     val appBarTitle = when (uiState) {
         is MainViewModel.UiState.Success -> "Restaurants nearby you"
+        is MainViewModel.UiState.Loading -> "Your current location"
         else -> "Finding Restaurants for you..."
     }
-
-
-    when (uiState) {
-        is MainViewModel.UiState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .size(180.dp),   //crops the image to circle shape
-                        painter = rememberDrawablePainter(
-                            drawable = getDrawable(
-                                LocalContext.current,
-                                R.drawable.restaurant_marker
-                            )
-                        ),
-                        contentDescription = "Loading animation",
-                        contentScale = ContentScale.FillWidth,
-                    )
-                    AddVerticalSpace(4.dp)
-                    Text(
-                        "Finding Restaurants for you...",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-            }
-        }
-
-        is MainViewModel.UiState.Success -> {
-            val data = (uiState as MainViewModel.UiState.Success).data
-            RestaurantList(data, mainViewModel, appBarTitle, listState)
-        }
-
-        is MainViewModel.UiState.LoadingWithData -> {
-            val data = (uiState as MainViewModel.UiState.LoadingWithData).data
-            // Show existing data with a "Loading" indicator
-            Box {
-                RestaurantList(data, mainViewModel, appBarTitle, listState)
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-        }
-
-        is MainViewModel.UiState.Error -> {
-            var message = (uiState as MainViewModel.UiState.Error).message
-            if (message.contains("Unable to"))
-                message = "Please check your internet and try again!"
-            ErrorState(message = message)
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        mainViewModel.getFavouriteVenuesIDs()
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RestaurantList(
-    data: RestaurantData,
-    mainViewModel: MainViewModel,
-    appBarTitle: String,
-    listState: LazyListState
-) {
-    val items = data.sections[1].items;
-    var itemsToDisplay = items.size;
-    if (itemsToDisplay > 15)
-        itemsToDisplay = 15;
-    val lastIndex = itemsToDisplay - 1
 
     Scaffold(
         topBar = {
@@ -158,34 +100,153 @@ fun RestaurantList(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) {
+                Snackbar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                )
+                    {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(), // Ensure the Row takes full width
+                            horizontalArrangement = Arrangement.SpaceBetween, // Space between text and progress bar
+                            verticalAlignment = Alignment.CenterVertically // Align vertically centered
+                        ) {
+                            Text(text = "Loading new restaurants...")
+                            // Progress bar on the right side
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp), // Size of the progress indicator
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
+            }
         }
-    ) { innerPadding ->
-        LazyColumn(
-            state = listState,
-            contentPadding = innerPadding, // to avoid content overlapping with the App Bar
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(itemsToDisplay) { index ->
-                val showDivider = (index != lastIndex)
-                if (items[index].venue != null) {
+    ) { paddingValues ->
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)) {
+            when (uiState) {
+                is MainViewModel.UiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Image(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(180.dp),
+                                painter = rememberDrawablePainter(
+                                    drawable = getDrawable(
+                                        LocalContext.current,
+                                        R.drawable.restaurant_marker
+                                    )
+                                ),
+                                contentDescription = "Loading animation",
+                                contentScale = ContentScale.FillWidth,
+                            )
+                            AddVerticalSpace(4.dp)
+                            Text(
+                                "Finding Restaurants for you...",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
 
-                    VenueCardView(
-                        items[index].venue,
-                        items[index].image?.url,
-                        showDivider,
-                        mainViewModel
-                    )
+                is MainViewModel.UiState.Success -> {
+                    val data = (uiState as MainViewModel.UiState.Success).data
+                    RestaurantList(data, mainViewModel, appBarTitle, listState, snackbarHostState)
+                    // Dismiss the Snackbar once the data are loaded
+                    LaunchedEffect(Unit) {
+                        scope.launch {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                        }
+                    }
+                }
+
+                is MainViewModel.UiState.LoadingWithData -> {
+                    val data = (uiState as MainViewModel.UiState.LoadingWithData).data
+                    // Show existing data with a "Loading" indicator
+                    Box {
+                        RestaurantList(
+                            data,
+                            mainViewModel,
+                            appBarTitle,
+                            listState,
+                            snackbarHostState
+                        )
+
+                        // Show Snackbar for new data loading
+                        LaunchedEffect(Unit) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "Loading new data...",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }
+                    }
+                }
+
+                is MainViewModel.UiState.Error -> {
+                    var message = (uiState as MainViewModel.UiState.Error).message
+                    if (message.contains("Unable to"))
+                        message = "Please check your internet and try again!"
+                    ErrorState(message = message)
                 }
             }
         }
-        //to save the list scroll state for next data fetch
-        LaunchedEffect(data) {
-            if (listState.firstVisibleItemIndex > 0) {
-                listState.scrollToItem(
-                    listState.firstVisibleItemIndex,
-                    listState.firstVisibleItemScrollOffset
+    }
+
+    LaunchedEffect(Unit) {
+        mainViewModel.getFavouriteVenuesIDs()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RestaurantList(
+    data: RestaurantData,
+    mainViewModel: MainViewModel,
+    appBarTitle: String,
+    listState: LazyListState,
+    snackbarHostState: SnackbarHostState
+) {
+    val items = data.sections[1].items;
+    var itemsToDisplay = items.size;
+    if (itemsToDisplay > 15)
+        itemsToDisplay = 15;
+    val lastIndex = itemsToDisplay - 1
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(itemsToDisplay) { index ->
+            val showDivider = (index != lastIndex)
+            if (items[index].venue != null) {
+
+                VenueCardView(
+                    items[index].venue,
+                    items[index].image?.url,
+                    showDivider,
+                    mainViewModel
                 )
             }
+        }
+    }
+    //to save the list scroll state for next data fetch
+    LaunchedEffect(data) {
+        if (listState.firstVisibleItemIndex > 0) {
+            listState.scrollToItem(
+                listState.firstVisibleItemIndex,
+                listState.firstVisibleItemScrollOffset
+            )
         }
     }
 }
@@ -298,12 +359,5 @@ fun ErrorState(modifier: Modifier = Modifier, message: String) {
             AddVerticalSpace(height = 8.dp)
             Text(text = message, color = Color.Red, style = MaterialTheme.typography.bodyLarge)
         }
-    }
-}
-
-@Composable
-fun LoadingIndicator(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
     }
 }
