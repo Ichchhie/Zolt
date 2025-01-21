@@ -35,7 +35,7 @@ class MainViewModel @Inject constructor(private val venueRepository: VenueReposi
         data object Loading : UiState() // Used only for the initial loading
         data class Success(val data: RestaurantData) : UiState()
         data class LoadingWithData(val data: RestaurantData) :
-            UiState() // Loading while displaying old data
+            UiState() // Show Loading while displaying old data
 
         data class Error(val message: String) : UiState()
     }
@@ -55,14 +55,12 @@ class MainViewModel @Inject constructor(private val venueRepository: VenueReposi
     private fun startFetchingData() {
         viewModelScope.launch {
             while (true) {
-                // Get the current location
                 val currentLocation = locationCoordinates[currentIndex]
-                // Fetch the data from API
                 fetchRestaurantData(currentLocation.first, currentLocation.second)
                 // Update the index to the next location coordinates
                 currentIndex = (currentIndex + 1) % locationCoordinates.size
                 // Delay for 10 seconds before updating again
-                delay(10000)  // 10 seconds
+                delay(10000)
             }
         }
     }
@@ -73,10 +71,8 @@ class MainViewModel @Inject constructor(private val venueRepository: VenueReposi
             val existingData = (_uiState.value as? UiState.Success)?.data
 
             if (existingData != null) {
-                // Emit LoadingWithData state
                 _uiState.value = UiState.LoadingWithData(existingData)
             } else {
-                // Emit regular Loading state
                 _uiState.value = UiState.Loading
             }
 

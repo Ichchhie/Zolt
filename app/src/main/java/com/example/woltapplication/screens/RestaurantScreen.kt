@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -38,28 +40,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getDrawable
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.woltapplication.R
 import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
 import com.example.woltapplication.persistence.MainViewModel
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantScreen() {
     val mainViewModel: MainViewModel = hiltViewModel()
     val uiState by mainViewModel.uiState.collectAsState()
-    // Remember the scroll state
+    // to remember the scroll state of the list for new data loading
     val listState = rememberLazyListState()
 
     val appBarTitle = when (uiState) {
         is MainViewModel.UiState.Success -> "Restaurants nearby you"
-        else -> "Finding Restaurants for you..." // Default title
+        else -> "Finding Restaurants for you..."
     }
 
 
@@ -69,7 +74,26 @@ fun RestaurantScreen() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Loading...", style = MaterialTheme.typography.bodyMedium)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(180.dp),   //crops the image to circle shape
+                        painter = rememberDrawablePainter(
+                            drawable = getDrawable(
+                                LocalContext.current,
+                                R.drawable.restaurant_marker
+                            )
+                        ),
+                        contentDescription = "Loading animation",
+                        contentScale = ContentScale.FillWidth,
+                    )
+                    AddVerticalSpace(4.dp)
+                    Text(
+                        "Finding Restaurants for you...",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         }
 
@@ -80,7 +104,7 @@ fun RestaurantScreen() {
 
         is MainViewModel.UiState.LoadingWithData -> {
             val data = (uiState as MainViewModel.UiState.LoadingWithData).data
-            // Show data with a "Loading" indicator
+            // Show existing data with a "Loading" indicator
             Box {
                 RestaurantList(data, mainViewModel, appBarTitle, listState)
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -88,8 +112,10 @@ fun RestaurantScreen() {
         }
 
         is MainViewModel.UiState.Error -> {
-            val message = (uiState as MainViewModel.UiState.Error).message
-            ErrorState(message = "Please check your internet and try again!")
+            var message = (uiState as MainViewModel.UiState.Error).message
+            if (message.contains("Unable to"))
+                message = "Please check your internet and try again!"
+            ErrorState(message = message)
         }
     }
 
@@ -123,7 +149,7 @@ fun RestaurantList(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle navigation icon click */ }) {
+                    IconButton(onClick = { }) {
                         Icon(
                             painter = painterResource(R.drawable.ic_gps), // Menu icon
                             contentDescription = "Menu Icon",
@@ -136,7 +162,7 @@ fun RestaurantList(
     ) { innerPadding ->
         LazyColumn(
             state = listState,
-            contentPadding = innerPadding, // Avoid content overlapping with the App Bar
+            contentPadding = innerPadding, // to avoid content overlapping with the App Bar
             modifier = Modifier.fillMaxSize()
         ) {
             items(itemsToDisplay) { index ->
@@ -152,9 +178,13 @@ fun RestaurantList(
                 }
             }
         }
+        //to save the list scroll state for next data fetch
         LaunchedEffect(data) {
             if (listState.firstVisibleItemIndex > 0) {
-                listState.scrollToItem(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
+                listState.scrollToItem(
+                    listState.firstVisibleItemIndex,
+                    listState.firstVisibleItemScrollOffset
+                )
             }
         }
     }
@@ -188,9 +218,9 @@ fun VenueCardView(
                             .height(imageDimension)
                             .width(imageDimension)
                             .clip(RoundedCornerShape(size = 16.dp)),
-                        placeholder = painterResource(id = R.drawable.ic_favorite_border_icon),
-                        error = painterResource(id = R.drawable.ic_favorite_border_icon),
-                        fallback = painterResource(id = R.drawable.ic_favorite_border_icon),
+                        placeholder = painterResource(id = R.drawable.ic_venue_placeholder),
+                        error = painterResource(id = R.drawable.ic_venue_placeholder),
+                        fallback = painterResource(id = R.drawable.ic_venue_placeholder),
                     )
                 }
                 AddHorizontalSpace(horizontalSpacing)

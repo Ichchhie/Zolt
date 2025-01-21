@@ -93,4 +93,5 @@ dependencies {
     kspAndroidTest (libs.hilt.android.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.accompanist.drawablepainter)
 }
