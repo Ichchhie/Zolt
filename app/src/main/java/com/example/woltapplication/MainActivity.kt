@@ -15,7 +15,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WoltApplicationTheme {
+            //from Android 12+ devices use the system's Material colors (based on the wallpaper or theme) to generate a color scheme dynamically.
+            WoltApplicationTheme(dynamicColor = false) {
                 RestaurantScreen()
             }
         }

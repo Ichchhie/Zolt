@@ -1,6 +1,7 @@
 package com.example.woltapplication.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -70,14 +74,15 @@ fun RestaurantScreen() {
     // to remember the scroll state of the list for new data loading
     val listState = rememberLazyListState()
 
-    // Create SnackbarHostState for snackbar to show while location change
+    // Create snackbarHostState for snackbar to show while location change
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val appBarTitle = when (uiState) {
-        is MainViewModel.UiState.Success -> "Restaurants nearby you"
-        is MainViewModel.UiState.Loading -> "Your current location"
-        else -> "Finding Restaurants for you..."
+        is MainViewModel.UiState.Success -> stringResource(R.string.nearby_restaurants_label)
+        is MainViewModel.UiState.Loading -> stringResource(R.string.your_current_location_label)
+        else -> stringResource(R.string.finding_restaurants_label)
     }
 
     Scaffold(
@@ -87,15 +92,15 @@ fun RestaurantScreen() {
                     Text(
                         appBarTitle,
                         style = MaterialTheme.typography.titleSmall,
-                        color = Color.Blue
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { }) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_gps), // Menu icon
-                            contentDescription = "Menu Icon",
-                            tint = Color.Blue
+                            painter = painterResource(R.drawable.ic_gps),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -108,50 +113,56 @@ fun RestaurantScreen() {
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                 )
-                    {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(), // Ensure the Row takes full width
-                            horizontalArrangement = Arrangement.SpaceBetween, // Space between text and progress bar
-                            verticalAlignment = Alignment.CenterVertically // Align vertically centered
-                        ) {
-                            Text(text = "Loading new restaurants...")
-                            // Progress bar on the right side
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp), // Size of the progress indicator
-                                color = MaterialTheme.colorScheme.primary,
-                                strokeWidth = 2.dp
-                            )
-                        }
+                {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics(mergeDescendants = true) {},
+                        horizontalArrangement = Arrangement.SpaceBetween, // to put space between text and progress bar
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = stringResource(R.string.loading_new_restaurants_label))
+                        // Progress bar on the right side
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp), // Size of the progress indicator
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.dp
+                        )
                     }
+                }
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             when (uiState) {
                 is MainViewModel.UiState.Loading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.semantics(mergeDescendants = true) {}) {
                             Image(
                                 modifier = Modifier
                                     .clip(CircleShape)
                                     .size(180.dp),
                                 painter = rememberDrawablePainter(
                                     drawable = getDrawable(
-                                        LocalContext.current,
+                                        context,
                                         R.drawable.restaurant_marker
                                     )
                                 ),
-                                contentDescription = "Loading animation",
+                                contentDescription = null,
                                 contentScale = ContentScale.FillWidth,
                             )
-                            AddVerticalSpace(4.dp)
+                            AddVerticalSpace(8.dp)
                             Text(
-                                "Finding Restaurants for you...",
+                                stringResource(R.string.finding_restaurants_label),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -160,7 +171,7 @@ fun RestaurantScreen() {
 
                 is MainViewModel.UiState.Success -> {
                     val data = (uiState as MainViewModel.UiState.Success).data
-                    RestaurantList(data, mainViewModel, appBarTitle, listState, snackbarHostState)
+                    RestaurantList(data, mainViewModel, listState)
                     // Dismiss the Snackbar once the data are loaded
                     LaunchedEffect(Unit) {
                         scope.launch {
@@ -176,16 +187,14 @@ fun RestaurantScreen() {
                         RestaurantList(
                             data,
                             mainViewModel,
-                            appBarTitle,
-                            listState,
-                            snackbarHostState
+                            listState
                         )
 
                         // Show Snackbar for new data loading
                         LaunchedEffect(Unit) {
                             scope.launch {
                                 snackbarHostState.showSnackbar(
-                                    message = "Loading new data...",
+                                    message = context.getString(R.string.loading_new_data_text),
                                     duration = SnackbarDuration.Short
                                 )
                             }
@@ -213,14 +222,12 @@ fun RestaurantScreen() {
 fun RestaurantList(
     data: RestaurantData,
     mainViewModel: MainViewModel,
-    appBarTitle: String,
-    listState: LazyListState,
-    snackbarHostState: SnackbarHostState
+    listState: LazyListState
 ) {
-    val items = data.sections[1].items;
-    var itemsToDisplay = items.size;
+    val items = data.sections[1].items
+    var itemsToDisplay = items.size
     if (itemsToDisplay > 15)
-        itemsToDisplay = 15;
+        itemsToDisplay = 15
     val lastIndex = itemsToDisplay - 1
 
     LazyColumn(
@@ -264,75 +271,73 @@ fun VenueCardView(
     val favouriteVenuesIds by mainViewModel.favouriteVenuesIds.collectAsState()
     if (restaurantVenue != null) {
         if (favouriteVenuesIds.contains(restaurantVenue.id))
-            restaurantVenue.isFavourite = true;
-        Column {
-            Row(
-                modifier = Modifier.padding(horizontalSpacing),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(modifier = Modifier.weight(0.3f)) {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentScale = ContentScale.Crop,
-                        contentDescription = "Translated description of what the image contains",
-                        modifier = Modifier
-                            .height(imageDimension)
-                            .width(imageDimension)
-                            .clip(RoundedCornerShape(size = 16.dp)),
-                        placeholder = painterResource(id = R.drawable.ic_venue_placeholder),
-                        error = painterResource(id = R.drawable.ic_venue_placeholder),
-                        fallback = painterResource(id = R.drawable.ic_venue_placeholder),
+            restaurantVenue.isFavourite = true
+
+        Row(
+            modifier = Modifier
+                .padding(horizontalSpacing)
+                .semantics(mergeDescendants = true) {},
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.weight(0.3f)) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentScale = ContentScale.Crop,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .height(imageDimension)
+                        .width(imageDimension)
+                        .clip(RoundedCornerShape(size = 16.dp)),
+                    placeholder = painterResource(id = R.drawable.ic_venue_placeholder),
+                    error = painterResource(id = R.drawable.ic_venue_placeholder),
+                    fallback = painterResource(id = R.drawable.ic_venue_placeholder),
+                )
+            }
+            AddHorizontalSpace(horizontalSpacing)
+            Column(modifier = Modifier.weight(0.6f)) {
+                restaurantVenue.name?.let {
+                    Text(text = it, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+                }
+                AddVerticalSpace(8.dp)
+                restaurantVenue.shortDescription?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                AddHorizontalSpace(horizontalSpacing)
-                Column(modifier = Modifier.weight(0.7f)) {
-                    restaurantVenue.name?.let {
-                        Text(text = it, style = MaterialTheme.typography.titleMedium)
-                    }
-                    AddVerticalSpace(8.dp)
-                    restaurantVenue.shortDescription?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+            }
+            AddHorizontalSpace(12.dp)
+            Box(modifier = Modifier.weight(0.2f).width(48.dp).height(48.dp), Alignment.Center) {
+                var checked by remember { mutableStateOf(restaurantVenue.isFavourite) }
+                IconToggleButton(
+                    checked = checked,
+                    onCheckedChange = {
+                        checked = it
+                    }) {
+                    if (checked) {
+                        restaurantVenue.isFavourite = true
+                        mainViewModel.insertVenue(restaurantVenue)
+                        Icon(
+                            Icons.Filled.Favorite,
+                            contentDescription = stringResource(R.string.add_to_favourites_icon_label)
+                        )
+                    } else {
+                        restaurantVenue.isFavourite = false
+                        mainViewModel.deletedVenue(restaurantVenue)
+                        Icon(
+                            Icons.Outlined.FavoriteBorder,
+                            contentDescription = stringResource(R.string.remove_from_favourites_icon_label)
                         )
                     }
                 }
-                AddHorizontalSpace(12.dp)
-                Box(modifier = Modifier.weight(0.1f), Alignment.Center) {
-                    var checked by remember { mutableStateOf(restaurantVenue.isFavourite) }
-                    IconToggleButton(
-                        modifier = Modifier
-                            .width(45.dp)
-                            .height(45.dp),
-                        checked = checked,
-                        onCheckedChange = {
-                            checked = it
-                        }) {
-                        if (checked) {
-                            restaurantVenue.isFavourite = true;
-                            mainViewModel.insertVenue(restaurantVenue)
-                            Icon(
-                                Icons.Filled.Favorite,
-                                contentDescription = "add to favourites icon"
-                            )
-                        } else {
-                            restaurantVenue.isFavourite = false;
-                            mainViewModel.deletedVenue(restaurantVenue)
-                            Icon(
-                                Icons.Outlined.FavoriteBorder,
-                                contentDescription = "add to favourites icon"
-                            )
-                        }
-                    }
-                }
             }
-            if (showDivider) {
-                Row(modifier = Modifier.padding(horizontal = horizontalSpacing)) {
-                    AddHorizontalSpace(imageDimension + horizontalSpacing)
-                    HorizontalDivider(color = Color.LightGray, thickness = 1.5.dp)
-                }
+        }
+        if (showDivider) {
+            Row(modifier = Modifier.padding(horizontal = horizontalSpacing)) {
+                AddHorizontalSpace(imageDimension + horizontalSpacing)
+                HorizontalDivider(color = Color.LightGray, thickness = 1.5.dp)
             }
         }
     }
@@ -351,13 +356,15 @@ fun AddHorizontalSpace(width: Dp) {
 @Composable
 fun ErrorState(modifier: Modifier = Modifier, message: String) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.semantics(mergeDescendants = true) {}) {
             Image(
                 painter = painterResource(id = R.drawable.ic_no_internet),
-                contentDescription = "No internet connection image"
+                contentDescription = null
             )
             AddVerticalSpace(height = 8.dp)
-            Text(text = message, color = Color.Red, style = MaterialTheme.typography.bodyLarge)
+            Text(text = message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
