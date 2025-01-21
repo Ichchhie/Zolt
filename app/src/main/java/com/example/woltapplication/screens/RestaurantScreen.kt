@@ -51,8 +51,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -73,34 +77,33 @@ fun RestaurantScreen() {
     val uiState by mainViewModel.uiState.collectAsState()
     // to remember the scroll state of the list for new data loading
     val listState = rememberLazyListState()
-
-    // Create snackbarHostState for snackbar to show while location change
+    // to show while fetching venues for new location
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     val appBarTitle = when (uiState) {
-        is MainViewModel.UiState.Success -> stringResource(R.string.nearby_restaurants_label)
-        is MainViewModel.UiState.Loading -> stringResource(R.string.your_current_location_label)
-        else -> stringResource(R.string.finding_restaurants_label)
+//        is MainViewModel.UiState.Success -> stringResource(R.string.nearby_restaurants_label)
+        is MainViewModel.UiState.Loading -> stringResource(R.string.finding_restaurants_label)
+        else -> stringResource(R.string.your_current_location_label)
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        appBarTitle,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { }) {
+                    Row {
                         Icon(
                             painter = painterResource(R.drawable.ic_gps),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                        AddHorizontalSpace(16.dp)
+                        Text(
+                            appBarTitle,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.semantics { contentDescription = appBarTitle }
                         )
                     }
                 }
@@ -111,13 +114,13 @@ fun RestaurantScreen() {
                 Snackbar(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp)
+                        .semantics { contentDescription = "" }
                 )
                 {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics(mergeDescendants = true) {},
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween, // to put space between text and progress bar
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -205,7 +208,7 @@ fun RestaurantScreen() {
                 is MainViewModel.UiState.Error -> {
                     var message = (uiState as MainViewModel.UiState.Error).message
                     if (message.contains("Unable to"))
-                        message = "Please check your internet and try again!"
+                        message = stringResource(R.string.no_internet_connection)
                     ErrorState(message = message)
                 }
             }
@@ -229,11 +232,20 @@ fun RestaurantList(
     if (itemsToDisplay > 15)
         itemsToDisplay = 15
     val lastIndex = itemsToDisplay - 1
+    val horizontalSpacing = 16.dp
 
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = horizontalSpacing)
     ) {
+        item {
+            Text(
+                text = stringResource(R.string.nearby_restaurants_label),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
+        }
         items(itemsToDisplay) { index ->
             val showDivider = (index != lastIndex)
             if (items[index].venue != null) {
@@ -275,7 +287,7 @@ fun VenueCardView(
 
         Row(
             modifier = Modifier
-                .padding(horizontalSpacing)
+                .padding(vertical = horizontalSpacing)
                 .semantics(mergeDescendants = true) {},
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -296,7 +308,10 @@ fun VenueCardView(
             AddHorizontalSpace(horizontalSpacing)
             Column(modifier = Modifier.weight(0.6f)) {
                 restaurantVenue.name?.let {
-                    Text(text = it, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.semantics { heading() })
                 }
                 AddVerticalSpace(8.dp)
                 restaurantVenue.shortDescription?.let {
@@ -309,13 +324,22 @@ fun VenueCardView(
                 }
             }
             AddHorizontalSpace(12.dp)
-            Box(modifier = Modifier.weight(0.2f).width(48.dp).height(48.dp), Alignment.Center) {
+            Box(modifier = Modifier
+                .weight(0.2f)
+                .width(48.dp)
+                .height(48.dp), Alignment.CenterEnd) {
                 var checked by remember { mutableStateOf(restaurantVenue.isFavourite) }
+                val stateFavorite = stringResource(R.string.favourited_state)
+                val stateNotFavorite = stringResource(R.string.not_favorited_state)
                 IconToggleButton(
                     checked = checked,
                     onCheckedChange = {
                         checked = it
-                    }) {
+                    },
+                    modifier = Modifier.semantics {
+                        stateDescription = if (checked) stateFavorite else stateNotFavorite
+                    }
+                ) {
                     if (checked) {
                         restaurantVenue.isFavourite = true
                         mainViewModel.insertVenue(restaurantVenue)
@@ -328,7 +352,8 @@ fun VenueCardView(
                         mainViewModel.deletedVenue(restaurantVenue)
                         Icon(
                             Icons.Outlined.FavoriteBorder,
-                            contentDescription = stringResource(R.string.remove_from_favourites_icon_label)
+                            contentDescription = stringResource(R.string.remove_from_favourites_icon_label),
+                            modifier = Modifier.clearAndSetSemantics { } // Avoid redundancy of explaining the icon for each list item
                         )
                     }
                 }
@@ -364,7 +389,11 @@ fun ErrorState(modifier: Modifier = Modifier, message: String) {
                 contentDescription = null
             )
             AddVerticalSpace(height = 8.dp)
-            Text(text = message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }

@@ -1,13 +1,16 @@
 <resources>
     <string name="app_name">Wolt Application</string>
-    <string name="add_to_favourites_icon_label">add to favourites</string>
-    <string name="remove_from_favourites_icon_label">remove from favourites</string>
+    <string name="add_to_favourites_icon_label">Add to Favourites</string>
+    <string name="remove_from_favourites_icon_label">Remove from Favourites</string>
     <string name="no_internet_image_label">No internet connection image</string>
     <string name="restaurant_image_label">Restaurant image</string>
     <string name="gps_icon_label">GPS icon</string>
     <string name="your_current_location_label">Your current location</string>
-    <string name="nearby_restaurants_label">Restaurants nearby you</string>
+    <string name="nearby_restaurants_label">All Restaurants</string>
     <string name="finding_restaurants_label">Finding Restaurants for you…</string>
     <string name="loading_new_restaurants_label">Loading new restaurants…</string>
     <string name="loading_new_data_text">Loading new data…</string>
+    <string name="favourited_state">Favorited</string>
+    <string name="not_favorited_state">Not Favorited</string>
+    <string name="no_internet_connection">Please check your internet and try again!</string>
 </resources>
