@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,7 +54,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getDrawable
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,7 +61,8 @@ import coil3.compose.AsyncImage
 import com.example.woltapplication.R
 import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
-import com.example.woltapplication.persistence.MainViewModel
+import com.example.woltapplication.network.MainViewModel
+import com.example.woltapplication.persistence.VenueViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.launch
 
@@ -71,6 +70,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RestaurantScreen() {
     val mainViewModel: MainViewModel = hiltViewModel()
+    val venueViewModel: VenueViewModel = hiltViewModel()
     val uiState by mainViewModel.uiState.collectAsState()
     // to remember the scroll state of the list for new data loading
     val listState = rememberLazyListState()
@@ -80,8 +80,7 @@ fun RestaurantScreen() {
     val context = LocalContext.current
 
     val appBarTitle = when (uiState) {
-//        is MainViewModel.UiState.Success -> stringResource(R.string.nearby_restaurants_label)
-        is MainViewModel.UiState.Loading -> stringResource(R.string.finding_restaurants_label)
+        is UiState.Loading -> stringResource(R.string.finding_restaurants_label)
         else -> stringResource(R.string.your_current_location_label)
     }
 
@@ -139,7 +138,7 @@ fun RestaurantScreen() {
                 .padding(paddingValues)
         ) {
             when (uiState) {
-                is MainViewModel.UiState.Loading -> {
+                is UiState.Loading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -169,9 +168,9 @@ fun RestaurantScreen() {
                     }
                 }
 
-                is MainViewModel.UiState.Success -> {
-                    val data = (uiState as MainViewModel.UiState.Success).data
-                    RestaurantList(data, mainViewModel, listState)
+                is UiState.Success -> {
+                    val data = (uiState as UiState.Success).data
+                    RestaurantList(data, venueViewModel, listState)
                     // Dismiss the Snackbar once the data are loaded
                     LaunchedEffect(Unit) {
                         scope.launch {
@@ -180,13 +179,13 @@ fun RestaurantScreen() {
                     }
                 }
 
-                is MainViewModel.UiState.LoadingWithData -> {
-                    val data = (uiState as MainViewModel.UiState.LoadingWithData).data
+                is UiState.LoadingWithData -> {
+                    val data = (uiState as UiState.LoadingWithData).data
                     // Show existing data with a "Loading" indicator
                     Box {
                         RestaurantList(
                             data,
-                            mainViewModel,
+                            venueViewModel,
                             listState
                         )
 
@@ -202,8 +201,8 @@ fun RestaurantScreen() {
                     }
                 }
 
-                is MainViewModel.UiState.Error -> {
-                    var message = (uiState as MainViewModel.UiState.Error).message
+                is UiState.Error -> {
+                    var message = (uiState as UiState.Error).message
                     if (message.contains("Unable to"))
                         message = stringResource(R.string.no_internet_connection)
                     ErrorState(message = message)
@@ -213,7 +212,7 @@ fun RestaurantScreen() {
     }
 
     LaunchedEffect(Unit) {
-        mainViewModel.getFavouriteVenuesIDs()
+        venueViewModel.getFavouriteVenuesIDs()
     }
 }
 
@@ -221,7 +220,7 @@ fun RestaurantScreen() {
 @Composable
 fun RestaurantList(
     data: RestaurantData,
-    mainViewModel: MainViewModel,
+    venueViewModel: VenueViewModel,
     listState: LazyListState
 ) {
     val items = data.sections[1].items
@@ -251,7 +250,7 @@ fun RestaurantList(
                     items[index].venue,
                     items[index].image?.url,
                     showDivider,
-                    mainViewModel
+                    venueViewModel
                 )
             }
         }
@@ -272,12 +271,12 @@ fun VenueCardView(
     restaurantVenue: Venue?,
     imageUrl: String?,
     showDivider: Boolean,
-    mainViewModel: MainViewModel
+    venueViewModel: VenueViewModel
 ) {
     val imageDimension = 96.dp
     val horizontalSpacing = 16.dp
 
-    val favouriteVenuesIds by mainViewModel.favouriteVenuesIds.collectAsState()
+    val favouriteVenuesIds by venueViewModel.favouriteVenuesIds.collectAsState()
     if (restaurantVenue != null) {
         if (favouriteVenuesIds.contains(restaurantVenue.id))
             restaurantVenue.isFavourite = true
@@ -321,10 +320,12 @@ fun VenueCardView(
                 }
             }
             AddHorizontalSpace(12.dp)
-            Box(modifier = Modifier
-                .weight(0.2f)
-                .width(48.dp)
-                .height(48.dp), Alignment.CenterEnd) {
+            Box(
+                modifier = Modifier
+                    .weight(0.2f)
+                    .width(48.dp)
+                    .height(48.dp), Alignment.CenterEnd
+            ) {
                 var checked by remember { mutableStateOf(restaurantVenue.isFavourite) }
                 val stateFavorite = stringResource(R.string.favourited_state)
                 val stateNotFavorite = stringResource(R.string.not_favorited_state)
@@ -339,14 +340,14 @@ fun VenueCardView(
                 ) {
                     if (checked) {
                         restaurantVenue.isFavourite = true
-                        mainViewModel.insertVenue(restaurantVenue)
+                        venueViewModel.insertVenue(restaurantVenue)
                         Icon(
                             Icons.Filled.Favorite,
                             contentDescription = stringResource(R.string.add_to_favourites_icon_label)
                         )
                     } else {
                         restaurantVenue.isFavourite = false
-                        mainViewModel.deletedVenue(restaurantVenue)
+                        venueViewModel.deletedVenue(restaurantVenue)
                         Icon(
                             Icons.Outlined.FavoriteBorder,
                             contentDescription = stringResource(R.string.remove_from_favourites_icon_label),
@@ -361,36 +362,6 @@ fun VenueCardView(
                 AddHorizontalSpace(imageDimension + horizontalSpacing)
                 HorizontalDivider(color = Color.LightGray, thickness = 1.5.dp)
             }
-        }
-    }
-}
-
-@Composable
-fun AddVerticalSpace(height: Dp) {
-    Spacer(modifier = Modifier.height(height))
-}
-
-@Composable
-fun AddHorizontalSpace(width: Dp) {
-    Spacer(modifier = Modifier.width(width))
-}
-
-@Composable
-fun ErrorState(modifier: Modifier = Modifier, message: String) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.semantics(mergeDescendants = true) {}) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_no_internet),
-                contentDescription = null
-            )
-            AddVerticalSpace(height = 8.dp)
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyLarge
-            )
         }
     }
 }

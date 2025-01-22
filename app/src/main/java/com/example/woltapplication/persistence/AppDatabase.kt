@@ -1,13 +1,10 @@
-package com.example.woltapplication.room
+package com.example.woltapplication.persistence
 
-import android.app.Application
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.woltapplication.data.Venue
-import dagger.Provides
-import dagger.hilt.android.HiltAndroidApp
 
 @Database(entities = [Venue::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {

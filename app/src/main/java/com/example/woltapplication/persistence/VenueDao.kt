@@ -1,4 +1,4 @@
-package com.example.woltapplication.room
+package com.example.woltapplication.persistence
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -9,7 +9,7 @@ import com.example.woltapplication.data.Venue
 
 @Dao
 interface VenueDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertFavouriteVenue(venue: Venue)
 
     @Delete()

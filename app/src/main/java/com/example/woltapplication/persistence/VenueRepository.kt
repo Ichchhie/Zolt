@@ -1,7 +1,6 @@
 package com.example.woltapplication.persistence
 
 import com.example.woltapplication.data.Venue
-import com.example.woltapplication.room.VenueDao
 import javax.inject.Inject
 
 class VenueRepository @Inject constructor(private val venueDao: VenueDao) {

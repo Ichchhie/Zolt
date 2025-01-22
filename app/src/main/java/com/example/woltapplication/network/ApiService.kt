@@ -22,11 +22,6 @@ class ApiService {
         }
     }
 
-    sealed class APIResult<out T> {
-        data class Success<T>(val data: T) : APIResult<T>()
-        data class Error(val message: String) : APIResult<Nothing>()
-    }
-
     suspend fun getData(latitude: Double, longitude: Double): APIResult<RestaurantData> {
         val url = "https://restaurant-api.wolt.com/v1/pages/restaurants?lat=$latitude&lon=$longitude"
         return try {

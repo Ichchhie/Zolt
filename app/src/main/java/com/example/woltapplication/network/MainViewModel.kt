@@ -1,20 +1,14 @@
-package com.example.woltapplication.persistence
+package com.example.woltapplication.network
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.woltapplication.network.ApiService
-import com.example.woltapplication.data.RestaurantData
-import com.example.woltapplication.data.Venue
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.woltapplication.view.UiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class MainViewModel @Inject constructor(private val venueRepository: VenueRepository) :
-    ViewModel() {
+class MainViewModel : ViewModel() {
     private val apiService = ApiService()
 
     // Location coordinates for mocking the location change
@@ -31,21 +25,8 @@ class MainViewModel @Inject constructor(private val venueRepository: VenueReposi
     )
     private var currentIndex = 0
 
-    sealed class UiState {
-        data object Loading : UiState() // Used only for the initial loading
-        data class Success(val data: RestaurantData) : UiState()
-        data class LoadingWithData(val data: RestaurantData) :
-            UiState() // Show Loading while displaying old data
-
-        data class Error(val message: String) : UiState()
-    }
-
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState
-
-    // Use MutableStateFlow to hold the favourite venue IDs
-    private val _favouriteVenuesIds = MutableStateFlow<List<String>>(emptyList())
-    val favouriteVenuesIds: StateFlow<List<String>> get() = _favouriteVenuesIds
 
     init {
         // Start fetching data on ViewModel initialization
@@ -78,8 +59,8 @@ class MainViewModel @Inject constructor(private val venueRepository: VenueReposi
 
             // Fetch data from API
             when (val result = apiService.getData(latitude, longitude)) {
-                is ApiService.APIResult.Success -> _uiState.value = UiState.Success(result.data)
-                is ApiService.APIResult.Error -> {
+                is APIResult.Success -> _uiState.value = UiState.Success(result.data)
+                is APIResult.Error -> {
                     // Show error, but keep old data if available
                     if (existingData != null) {
                         _uiState.value = UiState.LoadingWithData(existingData)
@@ -88,34 +69,6 @@ class MainViewModel @Inject constructor(private val venueRepository: VenueReposi
                     }
                 }
             }
-        }
-    }
-
-    fun getFavouriteVenues() {
-        viewModelScope.launch {
-            venueRepository.getAllFavouriteVenues()
-        }
-    }
-
-    // Fetch the favourite venues IDs and update the StateFlow
-    fun getFavouriteVenuesIDs() {
-        viewModelScope.launch {
-            val ids = venueRepository.getFavouriteVenuesIds() // This should return List<String>
-            _favouriteVenuesIds.value = ids
-        }
-    }
-
-    fun insertVenue(venue: Venue) {
-        viewModelScope.launch {
-            venueRepository.insertVenue(venue)
-            getFavouriteVenuesIDs()
-        }
-    }
-
-    fun deletedVenue(venue: Venue) {
-        viewModelScope.launch {
-            venueRepository.deleteVenue(venue)
-            getFavouriteVenuesIDs()
         }
     }
 }

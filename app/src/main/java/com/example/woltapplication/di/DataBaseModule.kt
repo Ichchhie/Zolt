@@ -1,8 +1,8 @@
 package com.example.woltapplication.di
 
 import android.content.Context
-import com.example.woltapplication.room.AppDatabase
-import com.example.woltapplication.room.VenueDao
+import com.example.woltapplication.persistence.AppDatabase
+import com.example.woltapplication.persistence.VenueDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
