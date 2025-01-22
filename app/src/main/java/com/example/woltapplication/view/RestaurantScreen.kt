@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -275,6 +276,8 @@ fun VenueCardView(
 ) {
     val imageDimension = 96.dp
     val horizontalSpacing = 16.dp
+    val favIconSize = 38.dp
+    val largeHorizontalSpacing = 24.dp
 
     val favouriteVenuesIds by venueViewModel.favouriteVenuesIds.collectAsState()
     if (restaurantVenue != null) {
@@ -301,7 +304,7 @@ fun VenueCardView(
                     fallback = painterResource(id = R.drawable.ic_venue_placeholder),
                 )
             }
-            AddHorizontalSpace(horizontalSpacing)
+            AddHorizontalSpace(largeHorizontalSpacing)
             Column(modifier = Modifier.weight(0.6f)) {
                 restaurantVenue.name?.let {
                     Text(
@@ -343,6 +346,7 @@ fun VenueCardView(
                         venueViewModel.insertVenue(restaurantVenue)
                         Icon(
                             Icons.Filled.Favorite,
+                            modifier = Modifier.size(favIconSize),
                             contentDescription = stringResource(R.string.add_to_favourites_icon_label)
                         )
                     } else {
@@ -350,6 +354,8 @@ fun VenueCardView(
                         venueViewModel.deletedVenue(restaurantVenue)
                         Icon(
                             Icons.Outlined.FavoriteBorder,
+                            tint = Color.DarkGray,
+                            modifier = Modifier.size(favIconSize),
                             contentDescription = stringResource(R.string.remove_from_favourites_icon_label),
 //                            modifier = Modifier.clearAndSetSemantics { } // Avoid redundancy of explaining the icon for each list item
                         )
@@ -358,8 +364,8 @@ fun VenueCardView(
             }
         }
         if (showDivider) {
-            Row(modifier = Modifier.padding(horizontal = horizontalSpacing)) {
-                AddHorizontalSpace(imageDimension + horizontalSpacing)
+            Row {
+                AddHorizontalSpace(imageDimension + largeHorizontalSpacing)
                 HorizontalDivider(color = Color.LightGray, thickness = 1.5.dp)
             }
         }
