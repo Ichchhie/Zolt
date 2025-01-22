@@ -2,7 +2,7 @@ package com.example.woltapplication.persistence
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.woltapplication.api.ApiService
+import com.example.woltapplication.network.ApiService
 import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
 import dagger.hilt.android.lifecycle.HiltViewModel

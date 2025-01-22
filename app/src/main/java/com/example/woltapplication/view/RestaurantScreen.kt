@@ -1,7 +1,6 @@
-package com.example.woltapplication.screens
+package com.example.woltapplication.view
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +24,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -51,7 +49,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -353,7 +350,7 @@ fun VenueCardView(
                         Icon(
                             Icons.Outlined.FavoriteBorder,
                             contentDescription = stringResource(R.string.remove_from_favourites_icon_label),
-                            modifier = Modifier.clearAndSetSemantics { } // Avoid redundancy of explaining the icon for each list item
+//                            modifier = Modifier.clearAndSetSemantics { } // Avoid redundancy of explaining the icon for each list item
                         )
                     }
                 }

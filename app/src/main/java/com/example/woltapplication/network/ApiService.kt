@@ -1,6 +1,5 @@
-package com.example.woltapplication.api
+package com.example.woltapplication.network
 
-import android.util.Log
 import com.example.woltapplication.data.RestaurantData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

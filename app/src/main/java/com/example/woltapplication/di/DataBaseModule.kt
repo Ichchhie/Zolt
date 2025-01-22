@@ -1,4 +1,4 @@
-package com.example.woltapplication.hilt
+package com.example.woltapplication.di
 
 import android.content.Context
 import com.example.woltapplication.room.AppDatabase
