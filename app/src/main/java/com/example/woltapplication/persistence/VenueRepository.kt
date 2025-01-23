@@ -4,9 +4,6 @@ import com.example.woltapplication.data.Venue
 import javax.inject.Inject
 
 class VenueRepository @Inject constructor(private val venueDao: VenueDao) {
-    suspend fun getAllFavouriteVenues() : List<Venue>{
-        return venueDao.getFavourites()
-    }
     suspend fun getFavouriteVenuesIds() : List<String>{
         return venueDao.getFavouritesId()
     }

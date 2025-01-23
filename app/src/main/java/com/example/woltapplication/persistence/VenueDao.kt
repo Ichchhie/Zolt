@@ -15,9 +15,9 @@ interface VenueDao {
     @Delete()
     suspend fun deleteFavouriteVenue(venue: Venue)
 
-    @Query("SELECT * FROM venues WHERE isFavourite = 1")
-    suspend fun getFavourites() : List<Venue>
-
-    @Query("SELECT id FROM venues WHERE isFavourite = 1")
+    @Query("SELECT id FROM venues")
     suspend fun getFavouritesId() : List<String>
+
+    @Query("SELECT COUNT(*) FROM venues WHERE id = :id")
+    suspend fun getVenueCountById(id: String): Int
 }

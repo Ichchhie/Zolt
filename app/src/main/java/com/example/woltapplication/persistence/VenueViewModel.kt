@@ -32,7 +32,7 @@ class VenueViewModel @Inject constructor(private val venueRepository: VenueRepos
         }
     }
 
-    fun deletedVenue(venue: Venue) {
+    fun deleteVenue(venue: Venue) {
         viewModelScope.launch {
             venueRepository.deleteVenue(venue)
             getFavouriteVenuesIDs()

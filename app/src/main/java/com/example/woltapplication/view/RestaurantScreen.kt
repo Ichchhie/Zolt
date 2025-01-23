@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -351,7 +350,7 @@ fun VenueCardView(
                         )
                     } else {
                         restaurantVenue.isFavourite = false
-                        venueViewModel.deletedVenue(restaurantVenue)
+                        venueViewModel.deleteVenue(restaurantVenue)
                         Icon(
                             Icons.Outlined.FavoriteBorder,
                             tint = Color.DarkGray,
