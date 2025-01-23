@@ -1,5 +1,15 @@
 package com.example.woltapplication.view
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,7 +53,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -58,7 +70,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getDrawable
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import com.example.woltapplication.R
+import com.example.woltapplication.data.Image
 import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
 import com.example.woltapplication.network.MainViewModel
@@ -248,7 +262,7 @@ fun RestaurantList(
 
                 VenueCardView(
                     items[index].venue,
-                    items[index].image?.url,
+                    items[index].image,
                     showDivider,
                     venueViewModel
                 )
@@ -266,10 +280,11 @@ fun RestaurantList(
     }
 }
 
+@SuppressLint("UnusedTransitionTargetStateParameter")
 @Composable
 fun VenueCardView(
     restaurantVenue: Venue?,
-    imageUrl: String?,
+    image: Image?,
     showDivider: Boolean,
     venueViewModel: VenueViewModel
 ) {
@@ -291,7 +306,7 @@ fun VenueCardView(
         ) {
             Box(modifier = Modifier.weight(0.3f)) {
                 AsyncImage(
-                    model = imageUrl,
+                    model = image?.url,
                     contentScale = ContentScale.Crop,
                     contentDescription = null,
                     modifier = Modifier
@@ -331,6 +346,30 @@ fun VenueCardView(
                 var checked by remember { mutableStateOf(restaurantVenue.isFavourite) }
                 val stateFavorite = stringResource(R.string.favourited_state)
                 val stateNotFavorite = stringResource(R.string.not_favorited_state)
+                val transition = updateTransition(checked)
+                // om below line we are specifying transition
+                val size by transition.animateDp(
+                    transitionSpec = {
+                        // on below line we are specifying transition
+                        if (false isTransitioningTo true) {
+                            // on below line we are specifying key frames
+                            keyframes {
+                                // on below line we are specifying animation duration
+                                durationMillis = 250
+                                // on below line we are specifying animations.
+                                30.dp at 0 with LinearOutSlowInEasing // for 0-15 ms
+                                35.dp at 15 with FastOutLinearInEasing // for 15-75 ms
+                                40.dp at 75 // ms
+                                35.dp at 150 // ms
+                            }
+                        } else {
+                            spring(stiffness = Spring.StiffnessVeryLow)
+                        }
+                    },
+                    label = "Size"
+                ) { favIconSize }
+
+
                 IconToggleButton(
                     checked = checked,
                     onCheckedChange = {
@@ -345,7 +384,7 @@ fun VenueCardView(
                         venueViewModel.insertVenue(restaurantVenue)
                         Icon(
                             Icons.Filled.Favorite,
-                            modifier = Modifier.size(favIconSize),
+                            modifier = Modifier.size(size),
                             contentDescription = stringResource(R.string.add_to_favourites_icon_label)
                         )
                     } else {
@@ -353,8 +392,8 @@ fun VenueCardView(
                         venueViewModel.deleteVenue(restaurantVenue)
                         Icon(
                             Icons.Outlined.FavoriteBorder,
-                            tint = Color.DarkGray,
-                            modifier = Modifier.size(favIconSize),
+                            tint = Color.Gray,
+                            modifier = Modifier.size(size),
                             contentDescription = stringResource(R.string.remove_from_favourites_icon_label),
 //                            modifier = Modifier.clearAndSetSemantics { } // Avoid redundancy of explaining the icon for each list item
                         )
