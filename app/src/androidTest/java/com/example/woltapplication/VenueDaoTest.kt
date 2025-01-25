@@ -1,4 +1,4 @@
-package com.example.woltapplication.db
+package com.example.woltapplication
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider

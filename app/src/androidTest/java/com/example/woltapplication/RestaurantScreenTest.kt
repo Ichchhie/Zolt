@@ -1,10 +1,4 @@
-import androidx.compose.ui.test.junit4.createComposeRule
-import com.example.woltapplication.view.RestaurantScreen
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+package com.example.woltapplication
 
 //@HiltAndroidTest
 //class RestaurantScreenTest {
