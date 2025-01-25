@@ -1,8 +1,9 @@
-package com.example.woltapplication.network
+package com.example.woltapplication.view
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.woltapplication.view.UiState
+import com.example.woltapplication.network.APIResult
+import com.example.woltapplication.network.ApiService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,7 +59,7 @@ class MainViewModel : ViewModel() {
             }
 
             // Fetch data from API
-            when (val result = apiService.getData(latitude, longitude)) {
+            when (val result = apiService.getRestaurantsFromAPI(latitude, longitude)) {
                 is APIResult.Success -> _uiState.value = UiState.Success(result.data)
                 is APIResult.Error -> {
                     // Show error, but keep old data if available

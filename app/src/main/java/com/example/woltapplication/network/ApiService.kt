@@ -22,7 +22,7 @@ class ApiService {
         }
     }
 
-    suspend fun getData(latitude: Double, longitude: Double): APIResult<RestaurantData> {
+    suspend fun getRestaurantsFromAPI(latitude: Double, longitude: Double): APIResult<RestaurantData> {
         val url = "https://restaurant-api.wolt.com/v1/pages/restaurants?lat=$latitude&lon=$longitude"
         return try {
             val response = client.get(url)

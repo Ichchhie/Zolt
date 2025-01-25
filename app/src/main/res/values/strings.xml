@@ -12,5 +12,7 @@
     <string name="loading_new_data_text">Loading new data…</string>
     <string name="favourited_state">Favorited</string>
     <string name="not_favorited_state">Not Favorited</string>
-    <string name="no_internet_connection">Please check your internet and try again!</string>
+    <string name="no_internet_connection">Please check your internet and try again later \u2639\uFE0F</string>
+    <string name="empty_restaurants">There aren\'t any restaurants on Wolt near you yet \u2639\uFE0F</string>
+    <string name="something_went_wrong">Something went wrong. Please try again later \u2639\uFE0F</string>
 </resources>

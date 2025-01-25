@@ -70,7 +70,7 @@ import com.example.woltapplication.R
 import com.example.woltapplication.data.Image
 import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
-import com.example.woltapplication.network.MainViewModel
+import com.example.woltapplication.view.MainViewModel
 import com.example.woltapplication.persistence.VenueViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.launch
@@ -179,7 +179,16 @@ fun RestaurantScreen() {
 
                 is UiState.Success -> {
                     val data = (uiState as UiState.Success).data
-                    RestaurantList(data, venueViewModel, listState)
+                    if (data.sections.isEmpty() || data.sections.size < 2 || data.sections.getOrNull(
+                            1
+                        )?.items.isNullOrEmpty()
+                    )
+                        ErrorState(
+                            message = stringResource(R.string.empty_restaurants),
+                            errorImage = R.drawable.ic_empty_restaurants
+                        )
+                    else
+                        RestaurantList(data, venueViewModel, listState)
                     // Dismiss the Snackbar once the data are loaded
                     LaunchedEffect(Unit) {
                         scope.launch {
@@ -192,11 +201,17 @@ fun RestaurantScreen() {
                     val data = (uiState as UiState.LoadingWithData).data
                     // Show existing data with a "Loading" indicator
                     Box {
-                        RestaurantList(
-                            data,
-                            venueViewModel,
-                            listState
-                        )
+                        if (data.sections.isEmpty() || data.sections.size < 2 || data.sections.getOrNull(1)?.items.isNullOrEmpty())
+                            ErrorState(
+                                message = stringResource(R.string.empty_restaurants),
+                                errorImage = R.drawable.ic_empty_restaurants
+                            )
+                        else
+                            RestaurantList(
+                                data,
+                                venueViewModel,
+                                listState
+                            )
 
                         // Show Snackbar for new data loading
                         LaunchedEffect(Unit) {
@@ -216,7 +231,7 @@ fun RestaurantScreen() {
                     if (message.contains("Unable to")) {
                         message = stringResource(R.string.no_internet_connection)
                         imageToShow = R.drawable.ic_no_internet
-                    }
+                    }else message = stringResource(R.string.something_went_wrong)
                     ErrorState(message = message, errorImage = imageToShow)
                 }
             }
