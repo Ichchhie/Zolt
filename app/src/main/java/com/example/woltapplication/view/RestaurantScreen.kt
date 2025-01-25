@@ -1,6 +1,7 @@
 package com.example.woltapplication.view
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -70,24 +71,27 @@ import com.example.woltapplication.R
 import com.example.woltapplication.data.Image
 import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
-import com.example.woltapplication.view.MainViewModel
 import com.example.woltapplication.persistence.VenueViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RestaurantScreen() {
-    val mainViewModel: MainViewModel = hiltViewModel()
-    val venueViewModel: VenueViewModel = hiltViewModel()
-    val uiState by mainViewModel.uiState.collectAsState()
+fun RestaurantScreen(viewModel: RestaurantViewModel = hiltViewModel()) {
+    // Call the API function when the screen is launched
+    LaunchedEffect(Unit) {
+        viewModel.startFetchingData()
+    }
+    // Collect the current UI state from the ViewModel
+    val uiState = viewModel.uiState.collectAsState().value
     // to remember the scroll state of the list for new data loading
     val listState = rememberLazyListState()
     // to show while fetching venues for new location
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    //this is for local DB
+    val venueViewModel: VenueViewModel = hiltViewModel()
     val context = LocalContext.current
-
     val appBarTitle = when (uiState) {
         is UiState.Loading -> stringResource(R.string.finding_restaurants_label)
         else -> stringResource(R.string.your_current_location_label)
@@ -178,7 +182,7 @@ fun RestaurantScreen() {
                 }
 
                 is UiState.Success -> {
-                    val data = (uiState as UiState.Success).data
+                    val data = uiState.data
                     if (data.sections.isEmpty() || data.sections.size < 2 || data.sections.getOrNull(
                             1
                         )?.items.isNullOrEmpty()
@@ -198,10 +202,13 @@ fun RestaurantScreen() {
                 }
 
                 is UiState.LoadingWithData -> {
-                    val data = (uiState as UiState.LoadingWithData).data
+                    val data = uiState.data
                     // Show existing data with a "Loading" indicator
                     Box {
-                        if (data.sections.isEmpty() || data.sections.size < 2 || data.sections.getOrNull(1)?.items.isNullOrEmpty())
+                        if (data.sections.isEmpty() || data.sections.size < 2 || data.sections.getOrNull(
+                                1
+                            )?.items.isNullOrEmpty()
+                        )
                             ErrorState(
                                 message = stringResource(R.string.empty_restaurants),
                                 errorImage = R.drawable.ic_empty_restaurants
@@ -226,12 +233,14 @@ fun RestaurantScreen() {
                 }
 
                 is UiState.Error -> {
-                    var message = (uiState as UiState.Error).message
+                    var message = uiState.message
                     var imageToShow = R.drawable.ic_error_icon
-                    if (message.contains("Unable to")) {
-                        message = stringResource(R.string.no_internet_connection)
+                    if (message == stringResource(R.string.no_internet_connection)) {
                         imageToShow = R.drawable.ic_no_internet
-                    }else message = stringResource(R.string.something_went_wrong)
+                    }
+                    else {
+                        message = stringResource(R.string.something_went_wrong)
+                    }
                     ErrorState(message = message, errorImage = imageToShow)
                 }
             }

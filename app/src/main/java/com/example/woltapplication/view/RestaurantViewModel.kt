@@ -1,17 +1,27 @@
 package com.example.woltapplication.view
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.woltapplication.R
 import com.example.woltapplication.network.APIResult
 import com.example.woltapplication.network.ApiService
+import com.example.woltapplication.utils.NetworkHelper
+import com.example.woltapplication.utils.StringProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class RestaurantViewModel @Inject constructor(
+    private val networkHelper: NetworkHelper,
+    private val stringProvider: StringProvider
+    ) : ViewModel() {
+
     private val apiService = ApiService()
-
     // Location coordinates for mocking the location change
     private val locationCoordinates = listOf(
         Pair(60.169418, 24.931618),
@@ -29,12 +39,7 @@ class MainViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState
 
-    init {
-        // Start fetching data on ViewModel initialization
-        startFetchingData()
-    }
-
-    private fun startFetchingData() {
+     fun startFetchingData() {
         viewModelScope.launch {
             while (true) {
                 val currentLocation = locationCoordinates[currentIndex]
@@ -58,18 +63,29 @@ class MainViewModel : ViewModel() {
                 _uiState.value = UiState.Loading
             }
 
-            // Fetch data from API
-            when (val result = apiService.getRestaurantsFromAPI(latitude, longitude)) {
-                is APIResult.Success -> _uiState.value = UiState.Success(result.data)
-                is APIResult.Error -> {
-                    // Show error, but keep old data if available
-                    if (existingData != null) {
-                        _uiState.value = UiState.LoadingWithData(existingData)
-                    } else {
-                        _uiState.value = UiState.Error(result.message)
+            Log.d("apple", "network: "+networkHelper.isNetworkAvailable())
+            if (networkHelper.isNetworkAvailable()) {
+                // Fetch data from API
+                when (val result = apiService.getRestaurantsFromAPI(latitude, longitude)) {
+                    is APIResult.Success -> _uiState.value = UiState.Success(result.data)
+                    is APIResult.Error -> {
+                        // Show error, but keep old data if available
+                        if (existingData != null) {
+                            _uiState.value = UiState.LoadingWithData(existingData)
+                        } else {
+                            _uiState.value = UiState.Error(result.message)
+                        }
                     }
                 }
+            } else {
+                // Show error if no internet connection
+                val errorMessage = stringProvider.getString(R.string.no_internet_connection)
+                _uiState.value = UiState.Error(errorMessage)
             }
         }
+    }
+
+    fun setUiState(newState: UiState) {
+        _uiState.value = newState
     }
 }
