@@ -15,13 +15,13 @@ import androidx.compose.ui.unit.dp
 import com.example.woltapplication.R
 
 @Composable
-fun ErrorState(modifier: Modifier = Modifier, message: String) {
+fun ErrorState(modifier: Modifier = Modifier, message: String, errorImage : Int) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.semantics(mergeDescendants = true) {}) {
             Image(
-                painter = painterResource(id = R.drawable.ic_no_internet),
+                painter = painterResource(id = errorImage),
                 contentDescription = null
             )
             AddVerticalSpace(height = 8.dp)

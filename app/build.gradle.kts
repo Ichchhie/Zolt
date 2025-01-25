@@ -81,8 +81,6 @@ dependencies {
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
-    //data store
-    implementation(libs.androidx.datastore.preferences)
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     //room
@@ -96,5 +94,4 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.accompanist.drawablepainter)
-    androidTestImplementation(libs.truth)
 }

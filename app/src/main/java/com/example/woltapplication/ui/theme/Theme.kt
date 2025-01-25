@@ -37,7 +37,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun WoltApplicationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+    // Dynamic color is available on Android 12+ but keeping false as want to stick to brand color rather than device theme
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
