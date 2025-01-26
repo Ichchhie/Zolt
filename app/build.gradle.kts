@@ -96,9 +96,8 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.accompanist.drawablepainter)
     //mockito
-    testImplementation (libs.mockito.core) // Core Mockito library
-    testImplementation (libs.mockito.inline) // For mocking final classes and methods
-    testImplementation (libs.mockito.kotlin)// Kotlin-specific extensions for MockitoandroidTestImplementation "com.google.dagger:hilt-android-testing:2.x"
+    testImplementation (libs.mockito.core)
+    testImplementation (libs.mockito.inline)
+    testImplementation (libs.mockito.kotlin)
     androidTestImplementation (libs.hilt.android.testing)
-//    kspAndroidTest (libs.hilt.compiler)
 }

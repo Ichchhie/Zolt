@@ -53,6 +53,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -72,6 +74,7 @@ import com.example.woltapplication.data.Image
 import com.example.woltapplication.data.RestaurantData
 import com.example.woltapplication.data.Venue
 import com.example.woltapplication.persistence.VenueViewModel
+import com.example.woltapplication.utils.decodeBlurHash
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.launch
 
@@ -315,6 +318,9 @@ fun VenueCardView(
     val favIconSize = 38.dp
     val largeHorizontalSpacing = 24.dp
 
+    // Decode the BlurHash to show as placeholder
+    val blurHashBitmap = decodeBlurHash(image?.blurhash.toString())
+
     val favouriteVenuesIds by venueViewModel.favouriteVenuesIds.collectAsState()
     if (restaurantVenue != null) {
         if (favouriteVenuesIds.contains(restaurantVenue.id))
@@ -335,7 +341,8 @@ fun VenueCardView(
                         .height(imageDimension)
                         .width(imageDimension)
                         .clip(RoundedCornerShape(size = 16.dp)),
-                    placeholder = painterResource(id = R.drawable.ic_venue_placeholder),
+//                    placeholder = painterResource(id = R.drawable.ic_venue_placeholder),
+                    placeholder = remember { blurHashBitmap?.asImageBitmap() } as Painter?,
                     error = painterResource(id = R.drawable.ic_venue_placeholder),
                     fallback = painterResource(id = R.drawable.ic_venue_placeholder),
                 )
