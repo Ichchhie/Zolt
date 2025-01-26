@@ -67,6 +67,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getDrawable
+import androidx.core.content.res.ResourcesCompat.getDrawable
+import androidx.core.content.res.TypedArrayUtils.getDrawable
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.woltapplication.R
@@ -81,10 +83,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantScreen(viewModel: RestaurantViewModel = hiltViewModel()) {
-    // Call the API function when the screen is launched
-    LaunchedEffect(Unit) {
-        viewModel.startFetchingData()
-    }
     // Collect the current UI state from the ViewModel
     val uiState = viewModel.uiState.collectAsState().value
     // to remember the scroll state of the list for new data loading
@@ -208,9 +206,7 @@ fun RestaurantScreen(viewModel: RestaurantViewModel = hiltViewModel()) {
                     val data = uiState.data
                     // Show existing data with a "Loading" indicator
                     Box {
-                        if (data.sections.isEmpty() || data.sections.size < 2 || data.sections.getOrNull(
-                                1
-                            )?.items.isNullOrEmpty()
+                        if (data.sections.isEmpty() || data.sections.size < 2 || data.sections.getOrNull(1)?.items.isNullOrEmpty()
                         )
                             ErrorState(
                                 message = stringResource(R.string.empty_restaurants),
@@ -319,7 +315,7 @@ fun VenueCardView(
     val largeHorizontalSpacing = 24.dp
 
     // Decode the BlurHash to show as placeholder
-    val blurHashBitmap = decodeBlurHash(image?.blurhash.toString())
+//    val blurHashBitmap = decodeBlurHash(image?.blurhash.toString())
 
     val favouriteVenuesIds by venueViewModel.favouriteVenuesIds.collectAsState()
     if (restaurantVenue != null) {
@@ -341,8 +337,7 @@ fun VenueCardView(
                         .height(imageDimension)
                         .width(imageDimension)
                         .clip(RoundedCornerShape(size = 16.dp)),
-//                    placeholder = painterResource(id = R.drawable.ic_venue_placeholder),
-                    placeholder = remember { blurHashBitmap?.asImageBitmap() } as Painter?,
+                    placeholder = painterResource(id = R.drawable.ic_venue_placeholder),
                     error = painterResource(id = R.drawable.ic_venue_placeholder),
                     fallback = painterResource(id = R.drawable.ic_venue_placeholder),
                 )

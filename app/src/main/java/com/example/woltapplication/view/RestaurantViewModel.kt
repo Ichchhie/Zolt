@@ -19,7 +19,7 @@ import javax.inject.Inject
 class RestaurantViewModel @Inject constructor(
     private val networkHelper: NetworkHelper,
     private val stringProvider: StringProvider
-    ) : ViewModel() {
+) : ViewModel() {
 
     private val apiService = ApiService()
     // Location coordinates for mocking the location change
@@ -39,7 +39,11 @@ class RestaurantViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState
 
-     fun startFetchingData() {
+    init {
+        startFetchingData()
+    }
+
+    fun startFetchingData() {
         viewModelScope.launch {
             while (true) {
                 val currentLocation = locationCoordinates[currentIndex]
@@ -53,6 +57,7 @@ class RestaurantViewModel @Inject constructor(
     }
 
     private fun fetchRestaurantData(latitude: Double, longitude: Double) {
+        Log.d("apple", "fetchRestaurantData: "+latitude+longitude)
         viewModelScope.launch {
             // Check if there is existing data to show while loading
             val existingData = (_uiState.value as? UiState.Success)?.data
@@ -63,7 +68,6 @@ class RestaurantViewModel @Inject constructor(
                 _uiState.value = UiState.Loading
             }
 
-            Log.d("apple", "network: "+networkHelper.isNetworkAvailable())
             if (networkHelper.isNetworkAvailable()) {
                 // Fetch data from API
                 when (val result = apiService.getRestaurantsFromAPI(latitude, longitude)) {
