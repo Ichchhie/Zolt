@@ -1,11 +1,3 @@
-# Wolt 2025 Mobile Engineering Internship Assignment
-
-Welcome! This is my submission for the **Wolt Mobile (Android) Engineering Internship 2025** assignment. The app is designed to help users explore nearby dining venues in **Helsinki city center**, while showcasing modern Android development techniques.
-
----
-
-## Assignment Overview
-
 ### Core Features
 
 1. **Dynamic Venue List**:
@@ -33,10 +25,3 @@ Welcome! This is my submission for the **Wolt Mobile (Android) Engineering Inter
 - **Dependency Injection**: Hilt
 - **State Management**: StateFlow 
 
----
-
-## Conclusion
-
-Thank you for the opportunity to complete this assignment! It was an exciting challenge and learning experience to design and implement an application. I look forward to discussing my approach, design decisions, and any potential improvements during the next stages of the interview process.
-
-Looking forward to your feedback! 🚀
