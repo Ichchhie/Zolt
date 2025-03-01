@@ -57,7 +57,6 @@ class RestaurantViewModel @Inject constructor(
     }
 
     private fun fetchRestaurantData(latitude: Double, longitude: Double) {
-        Log.d("apple", "fetchRestaurantData: "+latitude+longitude)
         viewModelScope.launch {
             // Check if there is existing data to show while loading
             val existingData = (_uiState.value as? UiState.Success)?.data
