@@ -15,7 +15,12 @@
       `https://restaurant-api.wolt.com/v1/pages/restaurants?lat=60.170187&lon=24.930599`
     - Utilizes key fields like venue name, description, image, and id.
 
----
+## App screenshots
+<div style="display: flex; justify-content: space-around;">
+  <img src="screenshots/Screenshot_loading.png" width="30%" />
+  <img src="screenshots/Screenshot_restaurants_list.png" width="30%" />
+  <img src="screenshots/screenshot_no_internet.png" width="30%" />
+</div>
 
 ## Tech Stack
 
